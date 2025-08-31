@@ -21,7 +21,7 @@ variables:
   # Docker image configuration
   imageName: 'rupesh-profile'
   imageTag: '$(Build.BuildId)'
-  acrName: '$(rupeshk8s)'  # Set this in pipeline variables
+  acrName: 'rupeshk8s' 
   acrLoginServer: '$(acrName).azurecr.io'
   
   # Build configuration
