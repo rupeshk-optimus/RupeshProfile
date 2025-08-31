@@ -60,6 +60,7 @@ stages:
   jobs:
   - deployment: PushToACR
     displayName: 'Push Image to ACR'
+    environment: 'production'
     strategy:
       runOnce:
         deploy:
@@ -67,7 +68,7 @@ stages:
           - task: AzureCLI@2
             displayName: 'Login to Azure Container Registry'
             inputs:
-              azureSubscription: '$(AZURE_SUBSCRIPTION)'  # Set this in pipeline variables
+              azureSubscription: 'RupeshResourceGroup'
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
@@ -90,7 +91,7 @@ stages:
           - task: AzureCLI@2
             displayName: 'Update ACR Image Tags'
             inputs:
-              azureSubscription: '$(AZURE_SUBSCRIPTION)'
+              azureSubscription: 'RupeshResourceGroup'
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
