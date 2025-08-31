@@ -1,0 +1,108 @@
+# CI/CD Pipeline for Rupesh Profile Website
+# Builds Docker image and pushes to Azure Container Registry
+
+trigger:
+  branches:
+    include:
+    - main
+    - dev
+    - feature/*
+  paths:
+    include:
+    - RupeshProfile/*
+
+pr:
+  branches:
+    include:
+    - main
+    - dev
+
+variables:
+  # Docker image configuration
+  imageName: 'rupesh-profile'
+  imageTag: '$(Build.BuildId)'
+  acrName: '$(rupeshk8s)'  # Set this in pipeline variables
+  acrLoginServer: '$(acrName).azurecr.io'
+  
+  # Build configuration
+  dockerfilePath: 'RupeshProfile/Dockerfile'
+  buildContext: 'RupeshProfile'
+  
+  # Environment configuration
+  environment: '$(Build.SourceBranchName)'
+  isMainBranch: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+
+stages:
+- stage: Build
+  displayName: 'Build and Test'
+  jobs:
+  - job: BuildAndTest
+    displayName: 'Build Docker Image and Run Tests'
+    pool:
+      vmImage: 'ubuntu-latest'
+    
+    steps:
+    - script: |
+        echo "Building Docker image..."
+        echo "Image Name: $(imageName)"
+        echo "Image Tag: $(imageTag)"
+        echo "ACR Login Server: $(acrLoginServer)"
+      displayName: 'Display Build Information'
+    
+    - script: |
+        docker build -t $(imageName):$(imageTag) -t $(imageName):latest -f $(dockerfilePath) $(buildContext)
+      displayName: 'Build Docker Image'
+
+- stage: PushToACR
+  displayName: 'Push to Azure Container Registry'
+  dependsOn: Build
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/dev')))
+  jobs:
+  - deployment: PushToACR
+    displayName: 'Push Image to ACR'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureCLI@2
+            displayName: 'Login to Azure Container Registry'
+            inputs:
+              azureSubscription: '$(AZURE_SUBSCRIPTION)'  # Set this in pipeline variables
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "Logging into Azure Container Registry..."
+                az acr login --name $(acrName)
+                
+                # Tag the image for ACR
+                docker tag $(imageName):$(imageTag) $(acrLoginServer)/$(imageName):$(imageTag)
+                docker tag $(imageName):$(imageTag) $(acrLoginServer)/$(imageName):latest
+                
+                # Push the images to ACR
+                echo "Pushing images to ACR..."
+                docker push $(acrLoginServer)/$(imageName):$(imageTag)
+                docker push $(acrLoginServer)/$(imageName):latest
+                
+                echo "✅ Successfully pushed images to ACR"
+                echo "Image: $(acrLoginServer)/$(imageName):$(imageTag)"
+                echo "Latest: $(acrLoginServer)/$(imageName):latest"
+          
+          - task: AzureCLI@2
+            displayName: 'Update ACR Image Tags'
+            inputs:
+              azureSubscription: '$(AZURE_SUBSCRIPTION)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Add additional tags for better tracking
+                if [ "$(isMainBranch)" = "true" ]; then
+                  echo "Adding production tag for main branch..."
+                  docker tag $(imageName):$(imageTag) $(acrLoginServer)/$(imageName):production
+                  docker push $(acrLoginServer)/$(imageName):production
+                fi
+                
+                if [ "$(environment)" = "dev" ]; then
+                  echo "Adding development tag for dev branch..."
+                  docker tag $(imageName):$(imageTag) $(acrLoginServer)/$(imageName):dev
+                  docker push $(acrLoginServer)/$(imageName):dev
+                fi
