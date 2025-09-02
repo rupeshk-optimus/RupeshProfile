@@ -10,9 +10,8 @@ WORKDIR /usr/share/nginx/html
 # Copy the website content
 COPY . .
 
-# Create a non-root user for better security
-RUN addgroup -g 1001 -S nginx && \
-    adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx
+# Create a non-root user for better security using existing nginx group
+RUN adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx
 
 # Set proper permissions
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
