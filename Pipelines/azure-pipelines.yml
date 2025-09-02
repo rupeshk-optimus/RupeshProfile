@@ -22,8 +22,8 @@ variables:
   acrLoginServer: '$(acrName).azurecr.io'
   
   # Build configuration
-  dockerfilePath: 'RupeshProfile/Dockerfile'  # Update if your Dockerfile is elsewhere
-  buildContext: 'RupeshProfile'               # Update if build context path differs
+  dockerfilePath: 'Dockerfile'  # Update if your Dockerfile is elsewhere
+  buildContext: '.'               # Update if build context path differs
   
   # Environment configuration
   environment: '$(Build.SourceBranchName)'
