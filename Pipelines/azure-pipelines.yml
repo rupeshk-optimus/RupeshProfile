@@ -25,7 +25,7 @@ variables:
   acrLoginServer: '$(acrName).azurecr.io'
   
   # Build configuration
-  dockerfilePath: 'RupeshProfile/Dockerfile'
+  dockerfilePath: 'Dockerfile'
   buildContext: 'RupeshProfile'
   
   # Environment configuration
