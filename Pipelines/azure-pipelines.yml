@@ -1,6 +1,3 @@
-# CI/CD Pipeline for Rupesh Profile Website
-# Builds Docker image and pushes to Azure Container Registry
-
 trigger:
   branches:
     include:
@@ -25,8 +22,8 @@ variables:
   acrLoginServer: '$(acrName).azurecr.io'
   
   # Build configuration
-  dockerfilePath: 'Dockerfile'
-  buildContext: 'RupeshProfile'
+  dockerfilePath: 'RupeshProfile/Dockerfile'   # Updated path here
+  buildContext: 'RupeshProfile'                # Updated path here
   
   # Environment configuration
   environment: '$(Build.SourceBranchName)'
