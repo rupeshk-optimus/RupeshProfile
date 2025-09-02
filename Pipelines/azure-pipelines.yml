@@ -22,8 +22,8 @@ variables:
   acrLoginServer: '$(acrName).azurecr.io'
   
   # Build configuration
-  dockerfilePath: 'RupeshProfile/Dockerfile'   # Updated path here
-  buildContext: 'RupeshProfile'                # Updated path here
+  dockerfilePath: 'RupeshProfile/Dockerfile'  # Update if your Dockerfile is elsewhere
+  buildContext: 'RupeshProfile'               # Update if build context path differs
   
   # Environment configuration
   environment: '$(Build.SourceBranchName)'
@@ -37,8 +37,15 @@ stages:
     displayName: 'Build Docker Image and Run Tests'
     pool:
       vmImage: 'ubuntu-latest'
-    
+
     steps:
+    - script: |
+        echo "Listing files in the repository root to diagnose build context issue..."
+        ls -l
+        echo "Listing contents of RupeshProfile directory if it exists..."
+        ls -l RupeshProfile || echo "RupeshProfile directory not found"
+      displayName: 'List Workspace Files and Diagnose'
+
     - script: |
         echo "Building Docker image..."
         echo "Image Name: $(imageName)"
