@@ -4,16 +4,10 @@ FROM nginx:alpine
 # Set working directory
 WORKDIR /usr/share/nginx/html
 
-# Copy package files first (if any) for better caching
-# COPY package*.json ./
-
 # Copy the website content
 COPY . .
 
-# Create a non-root user for better security using existing nginx group
-RUN adduser -S -D -H -u 1001 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx
-
-# Set proper permissions
+# Set proper permissions using existing nginx user and group
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
     chmod -R 755 /usr/share/nginx/html
 
@@ -56,7 +50,7 @@ RUN echo 'server { \
     } \
 }' > /etc/nginx/conf.d/default.conf
 
-# Switch to non-root user
+# Switch to existing non-root user nginx
 USER nginx
 
 # Expose port 80
